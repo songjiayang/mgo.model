@@ -29,7 +29,7 @@ var (
 	}
 
 	mockLogger = func() *gogo.AppLogger {
-		return gogo.NewAppLogger("stderr", "test")
+		return gogo.NewAppLogger("stdout", "")
 	}()
 
 	mockModel = func() *Model {
