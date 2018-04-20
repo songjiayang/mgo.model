@@ -3,7 +3,7 @@ package model
 import (
 	"errors"
 
-	"gopkg.in/mgo.v2"
+	"github.com/globalsign/mgo"
 )
 
 var (
