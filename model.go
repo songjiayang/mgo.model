@@ -5,8 +5,6 @@ import (
 	"time"
 
 	"github.com/globalsign/mgo"
-
-	"github.com/dolab/gogo"
 )
 
 type Model struct {
@@ -15,11 +13,11 @@ type Model struct {
 	collection *mgo.Collection
 
 	config  *Config
-	logger  gogo.Logger
+	logger  Logger
 	indexes map[string]bool
 }
 
-func NewModel(config *Config, logger gogo.Logger) *Model {
+func NewModel(config *Config, logger Logger) *Model {
 	dsn := "mongodb://"
 	if config.User != "" && config.Passwd != "" {
 		dsn += config.User + ":" + config.Passwd + "@"

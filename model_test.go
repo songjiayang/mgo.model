@@ -7,8 +7,8 @@ import (
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 
-	"github.com/dolab/gogo"
 	"github.com/golib/assert"
+	"log"
 )
 
 var (
@@ -28,12 +28,10 @@ var (
 		return modelConfig
 	}
 
-	mockLogger = func() *gogo.AppLogger {
-		return gogo.NewAppLogger("stdout", "")
-	}()
+	defaultLogger = &mockLogger{}
 
 	mockModel = func() *Model {
-		return NewModel(newMockConfig(), mockLogger)
+		return NewModel(newMockConfig(), defaultLogger)
 	}()
 
 	mockTestModelIndexes = []mgo.Index{
@@ -49,19 +47,29 @@ type (
 		Id   bson.ObjectId `bson:"_id" json:"id"`
 		Name string        `bson:"name" json:"name"`
 	}
+
+	mockLogger struct{}
 )
+
+func (_ *mockLogger) Errorf(format string, v ...interface{}) {
+	log.Printf(format, v...)
+}
+
+func (_ *mockLogger) Panic(v ...interface{}) {
+	log.Panic(v...)
+}
 
 func Test_NewModel(t *testing.T) {
 	assertion := assert.New(t)
 
-	model := NewModel(newMockConfig(), mockLogger)
+	model := NewModel(newMockConfig(), defaultLogger)
 	assertion.NotNil(model)
 	assertion.NotNil(model.session)
 	assertion.Nil(model.collection)
 	assertion.NotNil(model.config)
 	assertion.NotNil(model.logger)
 	assertion.Condition(func() bool {
-		return fmt.Sprintf("%p", mockLogger) == fmt.Sprintf("%p", model.logger)
+		return fmt.Sprintf("%p", defaultLogger) == fmt.Sprintf("%p", model.logger)
 	})
 	assertion.Empty(model.indexes)
 }
@@ -69,7 +77,7 @@ func Test_NewModel(t *testing.T) {
 func Test_ModelUse(t *testing.T) {
 	assertion := assert.New(t)
 
-	model := NewModel(newMockConfig(), mockLogger)
+	model := NewModel(newMockConfig(), defaultLogger)
 	assertion.Equal("testing_model", model.Database())
 
 	model.Use("testing_database")
@@ -78,7 +86,7 @@ func Test_ModelUse(t *testing.T) {
 
 func Test_ModelCopy(t *testing.T) {
 	assertion := assert.New(t)
-	model := NewModel(newMockConfig(), mockLogger)
+	model := NewModel(newMockConfig(), defaultLogger)
 
 	copiedModel := model.Copy()
 	assertion.Condition(func() bool {
@@ -100,7 +108,7 @@ func Test_ModelCopy(t *testing.T) {
 
 func Test_ModelC(t *testing.T) {
 	assertion := assert.New(t)
-	model := NewModel(newMockConfig(), mockLogger)
+	model := NewModel(newMockConfig(), defaultLogger)
 
 	db := model.C("testing_collection")
 	assertion.NotNil(db.collection)
@@ -109,7 +117,7 @@ func Test_ModelC(t *testing.T) {
 
 func Test_ModelQuery(t *testing.T) {
 	assertion := assert.New(t)
-	model := NewModel(newMockConfig(), mockLogger)
+	model := NewModel(newMockConfig(), defaultLogger)
 	test := &mockTestModel{bson.NewObjectId(), "testing"}
 
 	model.Query("testing_collection", mockTestModelIndexes, func(c *mgo.Collection) {
